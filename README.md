@@ -1,6 +1,6 @@
 # ESP32 E-ink Display Driver
 
-Professional driver for Waveshare 13.3" 6-color e-Paper display with TCP streaming support.
+Driver for Waveshare 13.3" 6-color e-Paper display with TCP streaming support.
 
 ## Gallery
 
