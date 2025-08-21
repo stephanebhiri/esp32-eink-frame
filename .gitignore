@@ -1,0 +1,29 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Build
+build/
+*.bin
+*.elf
+*.map
+
+# Config (contains passwords)
+WiFiConfig.h
+
+# Temporary
+*.tmp
+*.bak
+*.cache
+
+# Debug
+*.log
+core

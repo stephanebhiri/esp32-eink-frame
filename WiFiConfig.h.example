@@ -1,0 +1,6 @@
+// WiFi Configuration Template
+// Copy this file to WiFiConfig.h and update with your credentials
+
+const char* WIFI_SSID = "YourWiFiNetwork";
+const char* WIFI_PASS = "YourWiFiPassword"; 
+const uint16_t TCP_PORT = 3333;
