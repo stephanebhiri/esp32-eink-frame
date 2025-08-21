@@ -2,6 +2,14 @@
 
 Professional driver for Waveshare 13.3" 6-color e-Paper display with TCP streaming support.
 
+## Gallery
+
+### Boot Sequence
+![Boot Sequence](images/boot-sequence.jpg)
+
+### Art Display
+![Art Display](images/art-display.jpg)
+
 ## Features
 
 - **Display**: 13.3 inch, 1200x1600 resolution
