@@ -17,16 +17,40 @@ static bool readN(WiFiClient& c, uint8_t* buf, size_t n) {
   return true;
 }
 
+/**
+ * ESP32 E-Ink Display Controller - Main Application
+ * 
+ * This application manages a Waveshare 13.3" 6-color e-ink display
+ * with TCP streaming capabilities for real-time image updates.
+ * 
+ * Features:
+ * - WiFi connectivity with automatic connection management
+ * - TCP server for receiving packed 6-color image data
+ * - Power optimization for battery operation
+ * - Dual-controller synchronization for 1200x1600 resolution
+ * 
+ * Hardware: Adafruit HUZZAH32 Feather + Waveshare 13.3" E-Paper HAT
+ * Protocol: Custom packed 6-color format (4 bits per pixel)
+ */
+
 void setup() {
   Serial.begin(115200);
+  
+  // Power optimization: Reduce CPU frequency for lower consumption
+  // HUZZAH32 Feather benefits from this when running on battery
+  setCpuFrequencyMhz(160);  // Reduced from default 240MHz
+  
+  // Initialize hardware pins and SPI communication
   DEV_Module_Init();
 
 #ifdef EPD_PWR_PIN
   pinMode(EPD_PWR_PIN, OUTPUT);
-  DEV_Digital_Write(EPD_PWR_PIN, HIGH);
+  // Power management: start with screen OFF to save power
+  DEV_Digital_Write(EPD_PWR_PIN, LOW);
 #endif
 
-  // Connect to WiFi with timeout (10 seconds)
+  // WiFi Configuration
+  // Connect in station mode with 10-second timeout for resilience
   WiFi.mode(WIFI_STA);
   WiFi.begin(WIFI_SSID, WIFI_PASS);
   Serial.printf("WiFi… SSID=%s\n", WIFI_SSID);
@@ -39,13 +63,27 @@ void setup() {
   
   if (WiFi.status() == WL_CONNECTED) {
     Serial.printf("\nOK, IP=%s\n", WiFi.localIP().toString().c_str());
+    // Keep WiFi active for TCP server (no sleep mode)
   } else {
     Serial.println("\nWiFi connection failed - continuing in offline mode");
   }
 
+  // Power ON screen for boot splash - longer stabilization
+#ifdef EPD_PWR_PIN
+  DEV_Digital_Write(EPD_PWR_PIN, HIGH);
+  delay(100);  // Wait for power stabilization
+#endif
+  
   // Initialize display and show boot splash (no unnecessary white clear)
   EPD_13IN3E_Init();
   EPD_13IN3E_ShowBootSplash(WIFI_SSID, TCP_PORT);
+  
+  // Power OFF screen after boot splash to save power
+#ifdef EPD_PWR_PIN
+  delay(1000);  // Let user see the splash
+  DEV_Digital_Write(EPD_PWR_PIN, LOW);
+  Serial.println("Screen powered OFF - will turn ON for updates");
+#endif
 
   static WiFiServer server(TCP_PORT);
   server.begin();
@@ -69,6 +107,12 @@ void setup() {
       Serial.println("Bad header"); c.stop(); continue;
     }
 
+    // Power ON screen for update - much longer stabilization
+#ifdef EPD_PWR_PIN
+    DEV_Digital_Write(EPD_PWR_PIN, HIGH);
+    delay(100);  // Wait for power stabilization
+#endif
+    
     // Important: ensure clean state every frame
     EPD_13IN3E_Init();
 
@@ -106,6 +150,13 @@ void setup() {
     } else {
       Serial.println("Incomplete frame; skip refresh");
     }
+    
+    // Power OFF screen after update to save power
+#ifdef EPD_PWR_PIN
+    delay(500);  // Let refresh complete
+    DEV_Digital_Write(EPD_PWR_PIN, LOW);
+    Serial.println("Screen powered OFF until next update");
+#endif
     c.stop();
   }
 }
