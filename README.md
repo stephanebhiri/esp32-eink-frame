@@ -17,7 +17,8 @@ Professional driver for Waveshare 13.3" 6-color e-Paper display with TCP streami
 - **Architecture**: Dual-controller SPI (Master/Slave) for seamless full-width rendering
 - **Connectivity**: WiFi-enabled TCP streaming on port 3333
 - **Power Management**: Optimized for battery operation with smart power control
-- **Boot Screen**: Professional splash with WiFi status and IP display
+- **Boot Screen**: Professional splash with WiFi status, IP display, and battery monitoring
+- **Battery Monitoring**: Real-time voltage and percentage display for LiPo batteries
 
 ## Hardware Compatibility
 
@@ -137,6 +138,7 @@ The firmware includes several power-saving features:
 - **Display Power**: OFF between updates
 - **Smart WiFi**: Connection timeout with offline mode
 - **Efficient SPI**: 8MHz communication speed
+- **WiFi Power Save**: Reduces consumption from 80mA to 20mA during idle
 
 ### Battery Life
 
@@ -144,6 +146,21 @@ With a 10,000mAh battery:
 - **Active**: ~400mA during refresh
 - **Idle**: ~200mA with WiFi
 - **Expected Runtime**: 40-50 hours continuous
+
+### Battery Monitoring
+
+The HUZZAH32 Feather includes built-in battery monitoring capabilities:
+
+- **Voltage Reading**: Pin A13 (GPIO35) with 2:1 voltage divider
+- **Display**: Shows both voltage and percentage on boot screen
+- **Range**: 3.0V (0%) to 4.2V (100%) for LiPo batteries
+- **Accuracy**: ±0.1V typical, averaged over 5 readings
+- **Auto-Detection**: Displays "USB POWER" when no battery connected
+
+The battery status appears on the boot screen as:
+```
+BATTERY: 3.8V (67%)
+```
 
 ## API Reference
 

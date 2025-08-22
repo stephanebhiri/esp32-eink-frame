@@ -88,8 +88,8 @@ void EPD_13IN3E_EndFrameS(void);
 void EPD_13IN3E_RefreshNow(void);             // PON -> DRF -> POF
 
 // Boot Splash Screen with Text Rendering
-void EPD_13IN3E_ShowBootSplash(const char* ssid, uint16_t port);  // Show boot splash with WiFi info
-void EPD_13IN3E_DisplayTextScreen(void);     // Bitmap text rendering with better font quality
+void EPD_13IN3E_ShowBootSplash(const char* ssid, uint16_t port, int battery_pct);  // Show boot splash with WiFi info and battery level
+void EPD_13IN3E_DisplayTextScreen(const char* ssid, uint16_t port, int battery_pct);     // Bitmap text rendering with better font quality
 
 // Enhanced Power Management Functions
 void EPD_13IN3E_PowerOn(void);               // Power on sequence with proper timing

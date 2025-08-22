@@ -309,7 +309,7 @@ void EPD_13IN3E_Clear(UBYTE color) {
 /******************************************************************************
  * Boot Splash Display Function
  ******************************************************************************/
-void EPD_13IN3E_DisplayTextScreen(const char* ssid, uint16_t port) {
+void EPD_13IN3E_DisplayTextScreen(const char* ssid, uint16_t port, int battery_pct) {
     Serial.println("*** e-Frame with Color Bands + Text ***");
     
     // Line buffer for rendering
@@ -319,6 +319,15 @@ void EPD_13IN3E_DisplayTextScreen(const char* ssid, uint16_t port) {
     // Get WiFi info for display - convert to uppercase for better font rendering
     String ip_line;
     String wifi_line;
+    String battery_line;
+    if (battery_pct < 0) {
+        battery_line = "USB POWER";
+    } else {
+        // Get voltage for display (re-read ADC quickly)
+        int raw = analogRead(35);  // Quick read
+        float voltage = (raw / 4095.0) * 3.3 * 2.0;
+        battery_line = "BATTERY: " + String(voltage, 1) + "V (" + String(battery_pct) + "%)";
+    }
     
     if (WiFi.status() == WL_CONNECTED) {
         ip_line = "IP: " + WiFi.localIP().toString() + " PORT: " + String(port);
@@ -336,7 +345,7 @@ void EPD_13IN3E_DisplayTextScreen(const char* ssid, uint16_t port) {
         "E-INK FRAME (C) 2025",                      // Band 0 (black) - 20 chars
         ip_line.c_str(),                             // Band 1 (white) - Dynamic, ~25 chars
         wifi_line.c_str(),                           // Band 2 (yellow) - Dynamic, ~15 chars
-        "WELCOME TO YOUR CANVAS",                    // Band 3 (red) - 22 chars
+        battery_line.c_str(),                        // Band 3 (red) - Battery info, ~12 chars
         "13.3 INCH COLOR DISPLAY",                   // Band 4 (blue) - 23 chars
         "READY FOR YOUR IMAGES"                      // Band 5 (green) - 21 chars
     };
@@ -537,8 +546,8 @@ void EPD_13IN3E_DisplayTextScreen(const char* ssid, uint16_t port) {
 }
 
 
-void EPD_13IN3E_ShowBootSplash(const char* ssid, uint16_t port) {
-    EPD_13IN3E_DisplayTextScreen(ssid, port);
+void EPD_13IN3E_ShowBootSplash(const char* ssid, uint16_t port, int battery_pct) {
+    EPD_13IN3E_DisplayTextScreen(ssid, port, battery_pct);
 }
 
 /******************************************************************************

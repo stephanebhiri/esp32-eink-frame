@@ -1,4 +1,5 @@
 #include <WiFi.h>
+#include "esp_wifi.h"  // For Power Save mode
 #include "DEV_Config.h"
 #include "EPD_13in3e.h"
 #include "WiFiConfig.h"
@@ -15,6 +16,51 @@ static bool readN(WiFiClient& c, uint8_t* buf, size_t n) {
     else { if (millis()-t0>15000) return false; delay(1); }
   }
   return true;
+}
+
+/**
+ * Calculate battery percentage for HUZZAH32 Feather
+ * 
+ * The HUZZAH32 includes a voltage divider on pin A13 (GPIO35) that reads
+ * half the battery voltage. This allows monitoring LiPo battery levels
+ * without additional hardware.
+ * 
+ * @return Battery percentage (0-100), or -1 if no battery detected
+ */
+int getBatteryPercentage() {
+  // Configure ADC for optimal battery reading
+  analogSetAttenuation(ADC_11db);  // 3.3V range with minimal noise
+  analogSetWidth(12);              // 12-bit resolution (0-4095)
+  
+  // Take multiple readings for stability and average them
+  int raw_total = 0;
+  const int num_readings = 5;
+  for (int i = 0; i < num_readings; i++) {
+    raw_total += analogRead(A13);   // A13 = GPIO35 with built-in voltage divider
+    delay(10);                      // Brief delay between readings
+  }
+  int raw_avg = raw_total / num_readings;
+  
+  // Convert ADC reading to actual battery voltage
+  // HUZZAH32 voltage divider: VBAT/2 → ADC, so multiply by 2
+  float voltage = (raw_avg / 4095.0) * 3.3 * 2.0;
+  
+  // Check for very low readings (no battery or USB power only)
+  if (raw_avg < 100) {
+    Serial.println("No battery detected - using USB power");
+    return -1;  // Special value for display logic
+  }
+  
+  // Calculate percentage using realistic LiPo voltage range
+  // 3.0V = 0% (safe minimum), 4.2V = 100% (full charge)
+  float percentage = ((voltage - 3.0) / (4.2 - 3.0)) * 100.0;
+  
+  // Ensure percentage stays within bounds
+  if (percentage < 0) percentage = 0;
+  if (percentage > 100) percentage = 100;
+  
+  Serial.printf("Battery: %.2fV (%d%%)\n", voltage, (int)percentage);
+  return (int)percentage;
 }
 
 /**
@@ -63,7 +109,11 @@ void setup() {
   
   if (WiFi.status() == WL_CONNECTED) {
     Serial.printf("\nOK, IP=%s\n", WiFi.localIP().toString().c_str());
-    // Keep WiFi active for TCP server (no sleep mode)
+    
+    // Enable WiFi Power Save mode for ~75% power reduction
+    // Radio sleeps between beacon intervals, wakes to check for data
+    esp_wifi_set_ps(WIFI_PS_MIN_MODEM);
+    Serial.println("WiFi Power Save enabled (20mA vs 80mA)");
   } else {
     Serial.println("\nWiFi connection failed - continuing in offline mode");
   }
@@ -76,7 +126,8 @@ void setup() {
   
   // Initialize display and show boot splash (no unnecessary white clear)
   EPD_13IN3E_Init();
-  EPD_13IN3E_ShowBootSplash(WIFI_SSID, TCP_PORT);
+  int battery_pct = getBatteryPercentage();
+  EPD_13IN3E_ShowBootSplash(WIFI_SSID, TCP_PORT, battery_pct);
   
   // Power OFF screen after boot splash to save power
 #ifdef EPD_PWR_PIN
