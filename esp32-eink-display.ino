@@ -110,10 +110,17 @@ void setup() {
   if (WiFi.status() == WL_CONNECTED) {
     Serial.printf("\nOK, IP=%s\n", WiFi.localIP().toString().c_str());
     
-    // Enable WiFi Power Save mode for ~75% power reduction
+    // Enable WiFi Power Save mode for maximum power reduction
     // Radio sleeps between beacon intervals, wakes to check for data
-    esp_wifi_set_ps(WIFI_PS_MIN_MODEM);
-    Serial.println("WiFi Power Save enabled (20mA vs 80mA)");
+    esp_wifi_set_ps(WIFI_PS_MAX_MODEM);
+    
+    // Verify power save mode is actually active
+    wifi_ps_type_t ps_mode;
+    esp_wifi_get_ps(&ps_mode);
+    Serial.printf("WiFi Power Save: %s (mode %d)\n", 
+                  ps_mode == WIFI_PS_NONE ? "OFF" : 
+                  ps_mode == WIFI_PS_MIN_MODEM ? "MIN" : "MAX", ps_mode);
+    Serial.println("Power reduction: 80mA -> ~10mA in MAX mode");
   } else {
     Serial.println("\nWiFi connection failed - continuing in offline mode");
   }

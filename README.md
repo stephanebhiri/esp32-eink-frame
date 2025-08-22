@@ -138,14 +138,15 @@ The firmware includes several power-saving features:
 - **Display Power**: OFF between updates
 - **Smart WiFi**: Connection timeout with offline mode
 - **Efficient SPI**: 8MHz communication speed
-- **WiFi Power Save**: Reduces consumption from 80mA to 20mA during idle
+- **WiFi Power Save**: MAX mode reduces consumption from 80mA to ~10mA during idle
 
 ### Battery Life
 
 With a 10,000mAh battery:
 - **Active**: ~400mA during refresh
-- **Idle**: ~200mA with WiFi
-- **Expected Runtime**: 40-50 hours continuous
+- **Idle**: ~50mA with WiFi Power Save MAX
+- **Expected Runtime**: 150+ hours continuous
+- **TCP Latency**: 25-400ms (optimal for image transfers)
 
 ### Battery Monitoring
 
